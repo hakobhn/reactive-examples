@@ -1,0 +1,81 @@
+spring:
+  profiles:
+    active: dev
+---
+spring:
+  profiles: dev
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/test
+    username: postgres
+    password: root
+  logging:
+    level:
+      org.springframework.data.r2dbc: Debug
+management:
+  endpoint:
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+    health:
+      enabled: true
+      group:
+        custom:
+          include: db
+      show-details: always
+    prometheus:
+      enabled: true
+  endpoints:
+    health:
+      show-details: always
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+        exclude: env,beans,caches
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+---
+spring:
+  profiles: test
+  r2dbc:
+    url: r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    name: sa
+    password:
+---
+spring:
+  profiles: prod
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/test
+    username: postgres
+    password: postgres
+  logging:
+    level:
+      org.springframework.data.r2dbc: Debug
+management:
+  endpoint:
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+    health:
+      enabled: true
+      group:
+        custom:
+          include: db
+      show-details: always
+    prometheus:
+      enabled: true
+  endpoints:
+    health:
+      show-details: always
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+        exclude: env,beans,caches
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+

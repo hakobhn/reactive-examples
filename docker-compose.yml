@@ -1,0 +1,58 @@
+# Run pull command:  docker-compose -f .\docker-compose-local.yml pull
+# Start cluster command: docker-compose -f .\docker-compose-local.yml up -d
+# Monitor cluster: docker ps -a
+# Stop cluster command: docker-compose -f .\docker-compose-local.yml down
+
+version: '3.6'
+
+services:
+  app:
+    build:
+      context: ./
+    container_name: app
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/test
+      SPRING_R2DBC_USERNAME: postgres
+      SPRING_R2DBC_PASSWORD: postgres
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:14.1-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=test
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5442:5432'
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/postgres:/var/lib/postgresql/data
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./env/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    env_file:
+      - ./env/grafana.env
+
+
+# Volumes
+volumes:
+  data:
+    driver: local
